@@ -1,14 +1,14 @@
-all :
+all:
 
-install :
+install:
 	pip install -r REQUIREMENTS
 
-freeze : REQUIREMENTS
+freeze: REQUIREMENTS
 
-REQUIREMENTS :
+REQUIREMENTS:
 	pip freeze > REQUIREMENTS
 
-.venv :
+.venv:
 	python3 -m venv .venv
 
-.phony : all install freeze
+.PHONY: all install freeze
