@@ -176,13 +176,13 @@ def testCols(symbol):
                 print("{}\t{}\t{}".format(col, len(row), row))
 
 
-def buffer_flush(seq, pred):
+def buffer_flush(seq, first):
     """buffer_flush(iterable, callable) -> list, ...
     Breaks up an iterable based on a predicate: If true, break before that item.
     """
     buf = []
     for i in seq:
-        if pred(i) and len(buf):
+        if first(i) and len(buf):
             yield buf
             buf = []
         buf.append(i)
@@ -216,8 +216,8 @@ def getcsv(*symbols, cols=...):
         raise Exception(data)  # FIXME: Figure out the correct exception(s) to use
     for row in csv.reader([data.text]):
         assert len(row) >= len(cols) + len(pcols)
-        gdata = row[:len(cols)]
-        pdata = row[len(cols):]
+        gdata = row[:len(gcols)]
+        pdata = row[len(gcols):]
         # Parse apart problem columns. White space in front means that it's a new column
         betterdata = [''.join(d) for d in buffer_flush(pdata, first=lambda d: d.startswith(' '))]
         assert len(betterdata) == len(pcols)
