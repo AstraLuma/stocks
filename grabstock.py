@@ -219,11 +219,6 @@ def getcsv(*symbols, cols=...):
         gdata = row[:len(cols)]
         pdata = row[len(cols):]
         # Parse apart problem columns. White space in front means that it's a new column
-        betterdata = list(buffer_data(pdata, lambda d: d.startswith(' ')))
+        betterdata = [''.join(d) for d in buffer_flush(pdata, first=lambda d: d.startswith(' '))]
         assert len(betterdata) == len(pcols)
-        yield dict(*zip(gcols+pcols, gdata+betterdata))
-
-if __name__ == '__main__':
-    testCols('GOOG')
-    testCols('MSFT')
-    testCols('TROX')
+        yield dict(zip(gcols+pcols, gdata+betterdata))

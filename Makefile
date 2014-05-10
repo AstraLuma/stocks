@@ -11,4 +11,4 @@ REQUIREMENTS:
 .venv:
 	python3 -m venv .venv
 
-.PHONY: all install freeze
+.PHONY: all install freeze REQUIREMENTS
