@@ -77,7 +77,7 @@ COLUMNS = {
     'PricePaid': 'p1',
     'PriceSales': 'p5',
     'Revenue': 's6',
-    'SharesFloat': 'f6',  # This causes issues.
+    'SharesFloat': 'f6',
     'SharesOutstanding': 'j2',
     'SharesOwned': 's1',
     'ShortRatio': 's7',
@@ -94,6 +94,13 @@ COLUMNS = {
     'YearHigh': 'k0',
     'YearLow': 'j0',
     'YearRange': 'w0',
+}
+
+# These columns are known to be misformatted on Yahoo's side.
+# Specifically, they're numbers that are formatted with commas without quoting
+PROBLEM_COLUMNS = {
+    'SharesFloat',
+    'SharesOutstanding',
 }
 
 
@@ -148,18 +155,75 @@ def getycsv(*symbols):
         yield row
 
 
-def getcsv(*symbols):
+def _getrows(symbols, cols):
+    data = requests.get(
+        "http://download.finance.yahoo.com/d/quotes.csv",
+        params={
+            's': ','.join(symbols),
+            'f': ''.join(map(COLUMNS.__getitem__, cols)),
+        }
+        )
+    yield from csv.reader([data.text])
+
+
+def testCols(symbol):
+    """
+    Helps us find problem columns
+    """
+    for col in COLUMNS:
+        for row in _getrows([symbol], [col]):
+            if len(row) != 1:
+                print("{}\t{}\t{}".format(col, len(row), row))
+
+
+def buffer_flush(seq, pred):
+    """buffer_flush(iterable, callable) -> list, ...
+    Breaks up an iterable based on a predicate: If true, break before that item.
+    """
+    buf = []
+    for i in seq:
+        if pred(i) and len(buf):
+            yield buf
+            buf = []
+        buf.append(i)
+    yield buf
+
+
+def getcsv(*symbols, cols=...):
     """
     Parses CSV locally.
 
     Still working on how to work around unquoted commas.
     """
-    cols, abbrs = zip(*COLUMNS.items())
+    if cols is ...:
+        cols = COLUMNS.keys()
+    # Seperate problem columns
+    cols = list(cols)
+    pcols = []
+    pcols = [c for c in cols if c in PROBLEM_COLUMNS]
+    gcols = [c for c in cols if c not in PROBLEM_COLUMNS]
+    # Perform the request
     data = requests.get(
         "http://download.finance.yahoo.com/d/quotes.csv",
         params={
             's': ','.join(symbols),
-            'f': ''.join(abbrs),
+            # Put problem columns at the end so we can parse them special
+            'f': ''.join(map(COLUMNS.__getitem__, gcols+pcols)),
         }
         )
-    raise NotImplementedError
+    # Parse the results
+    if not data.ok:
+        raise Exception(data)  # FIXME: Figure out the correct exception(s) to use
+    for row in csv.reader([data.text]):
+        assert len(row) >= len(cols) + len(pcols)
+        gdata = row[:len(cols)]
+        pdata = row[len(cols):]
+        # Parse apart problem columns. White space in front means that it's a new column
+        betterdata = list(buffer_data(pdata, lambda d: d.startswith(' ')))
+        assert len(betterdata) == len(pcols)
+        yield dict(*zip(gcols+pcols, gdata+betterdata))
+
+if __name__ == '__main__':
+    testCols('GOOG')
+    testCols('MSFT')
+    testCols('TROX')
