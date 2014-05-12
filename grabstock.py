@@ -200,7 +200,7 @@ COLUMN_MAPS = {
     # 'LastTradeRealtimeWithTime': 'N/A - <b>518.73</b>', TODO
     'LastTradeSize': int,
     'LastTradeTime': timeonly,
-    # 'LastTradeWithTime': 'May  9 - <b>518.73</b>', Same as LastTradeRealtimeWithTime
+    # 'LastTradeWithTime': 'May  9 - <b>518.73</b>', TODO Same as LastTradeRealtimeWithTime
     # 'LowLimit': '-', TODO
     # 'MarketCapRealtime': 'N/A', TODO
     'MarketCapitalization': suffixed_n,
@@ -225,7 +225,7 @@ COLUMN_MAPS = {
     'Revenue': suffixed_n,
     'SharesFloat': int,
     'SharesOutstanding': int,
-    # 'SharesOwned': '-',TODO
+    # 'SharesOwned': '-', TODO
     'ShortRatio': Decimal,
     # 'StockExchange': 'NasdaqNM',
     # 'Symbol': 'GOOG',
