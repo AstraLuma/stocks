@@ -3,7 +3,9 @@ Demo module to play with the Yahoo API.
 """
 import requests
 import csv
+import re
 from requests.compat import urlencode
+from decimal import Decimal
 
 COLUMNS = {
     'AfterHoursChangeRealtime': 'c8',
@@ -104,6 +106,143 @@ PROBLEM_COLUMNS = {
 }
 
 
+def yNoneOr(cls):
+    def _(v):
+        if v in ('-', 'N/A'):
+            return None
+        else:
+            return cls(v)
+
+
+def percent(v):
+    if v.endswith('%'):
+        v = v[:-1]
+    return Decimal(v) / 100
+
+
+def change_np(v):
+    """<change amount> - <change percent>
+    """
+    return NotImplemented
+
+
+def range_nn(v):
+    """<low num> - <high num>
+    """
+    return NotImplemented
+
+
+def datething(v):
+    return NotImplemented
+
+
+def timeonly(v):
+    return NotImplemented
+
+
+def suffixed_n(v):
+    """
+    Deals in approximate numbers: B, M, k, etc
+    """
+    return NotImplemented
+
+
+def html(v):
+    unicode(v)
+
+
+COLUMN_MAPS = {
+    # 'AfterHoursChangeRealtime': 'N/A - N/A',
+    'AnnualizedGain': Decimal,
+    'Ask': Decimal,
+    'AskRealtime': Decimal,
+    'AskSize': int,
+    'AverageDailyVolume': int,
+    'Bid': Decimal,
+    'BidRealtime': Decimal,
+    'BidSize': int,
+    'BookValuePerShare': Decimal,
+    'Change': Decimal,
+    'ChangeFromFiftydayMovingAverage': Decimal,
+    'ChangeFromTwoHundreddayMovingAverage': Decimal,
+    'ChangeFromYearHigh': Decimal,
+    'ChangeFromYearLow': Decimal,
+    'ChangeInPercent': percent,
+    'ChangeInPercentFromYearHigh': percent,
+    'ChangeInPercentRealtime': change_np,
+    'ChangeRealtime': Decimal,
+    'Change_ChangeInPercent': change_np,
+    # 'Commission': TODO,
+    # 'Currency': 'USD',
+    'DaysHigh': Decimal,
+    'DaysLow': Decimal,
+    'DaysRange': range_nn,
+    'DaysRangeRealtime': range_nn,  # XXX: Is this correct?
+    'DaysValueChange': change_np,
+    'DaysValueChangeRealtime': change_np,  # XXX
+    'DilutedEPS': Decimal,
+    'DividendPayDate': datething,
+    'EBITDA': suffixed_n,
+    'EPSEstimateCurrentYear': Decimal,
+    'EPSEstimateNextQuarter': Decimal,
+    'EPSEstimateNextYear': Decimal,
+    'ExDividendDate': datething,
+    'FiftydayMovingAverage': Decimal,
+    # 'HighLimit': '-', TODO
+    # 'HoldingsGain': '-', TODO
+    # 'HoldingsGainPercent': '- - -', TODO
+    # 'HoldingsGainPercentRealtime': 'N/A - N/A', TODO
+    # 'HoldingsGainRealtime': 'N/A', TODO
+    # 'HoldingsValue': '-', TODO
+    # 'HoldingsValueRealtime': 'N/A', TODO
+    'LastTradeDate': datething,
+    'LastTradePriceOnly': Decimal,
+    # 'LastTradeRealtimeWithTime': 'N/A - <b>518.73</b>', TODO
+    'LastTradeSize': int,
+    'LastTradeTime': timeonly,
+    # 'LastTradeWithTime': 'May  9 - <b>518.73</b>', Same as LastTradeRealtimeWithTime
+    # 'LowLimit': '-', TODO
+    # 'MarketCapRealtime': 'N/A', TODO
+    'MarketCapitalization': suffixed_n,
+    # 'MoreInfo': 'npmiIed',
+    # 'Name': 'Google Inc.',
+    # 'Notes': '-', TODO
+    # 'OneyrTargetPrice': 'N/A', TODO
+    'Open': Decimal,
+    # 'OrderBookRealtime': 'N/A', TODO
+    # 'PEGRatio': 'N/A', TODO
+    'PERatio': Decimal,
+    'PERatioRealtime': Decimal,
+    'PercentChangeFromFiftydayMovingAverage': percent,
+    'PercentChangeFromTwoHundreddayMovingAverage': percent,
+    'PercentChangeFromYearLow': percent,
+    'PreviousClose': Decimal,
+    'PriceBook': Decimal,
+    # 'PriceEPSEstimateCurrentYear': 'N/A', TODO
+    # 'PriceEPSEstimateNextYear': 'N/A', TODO
+    # 'PricePaid': '-',
+    'PriceSales': Decimal,
+    'Revenue': suffixed_n,
+    'SharesFloat': int,
+    'SharesOutstanding': int,
+    # 'SharesOwned': '-',TODO
+    'ShortRatio': Decimal,
+    # 'StockExchange': 'NasdaqNM',
+    # 'Symbol': 'GOOG',
+    'TickerTrend': html,
+    # 'TradeDate': '-', TODO
+    'TradeLinks': html,
+    'TradeLinksAdditional': html,
+    'TrailingAnnualDividendYield': Decimal,
+    # 'TrailingAnnualDividendYieldInPercent': 'N/A', TODO
+    'TwoHundreddayMovingAverage': Decimal,
+    'Volume': int,
+    'YearHigh': Decimal,
+    'YearLow': Decimal,
+    'YearRange': range_nn
+}
+
+
 def getyql(*symbols):
     """
     Just asks YQL.
@@ -189,6 +328,19 @@ def buffer_flush(seq, first):
     yield buf
 
 
+def ychain(v, funcs):
+    if v in ('-', 'N/A'):
+        return
+    elif funcs is None:
+        return v
+    elif callable(funcs):
+        return funcs(v)
+    else:
+        for f in funcs:
+            v = f(v)
+        return v
+
+
 def getcsv(*symbols, cols=...):
     """
     Parses CSV locally.
@@ -215,10 +367,17 @@ def getcsv(*symbols, cols=...):
     if not data.ok:
         raise Exception(data)  # FIXME: Figure out the correct exception(s) to use
     for row in csv.reader([data.text]):
-        assert len(row) >= len(cols) + len(pcols)
+        assert len(row) >= len(gcols) + len(pcols)
         gdata = row[:len(gcols)]
         pdata = row[len(gcols):]
         # Parse apart problem columns. White space in front means that it's a new column
-        betterdata = [''.join(d) for d in buffer_flush(pdata, first=lambda d: d.startswith(' '))]
-        assert len(betterdata) == len(pcols)
-        yield dict(zip(gcols+pcols, gdata+betterdata))
+        betterdata = [
+            ''.join(d)
+            for d in buffer_flush(pdata, first=lambda d: d.startswith(' '))
+            ]
+        assert len(betterdata) == len(pcols), pdata
+
+        yield {
+            k: ychain(v, COLUMN_MAPS.get(k))
+            for k, v in zip(gcols+pcols, gdata+betterdata)
+            }

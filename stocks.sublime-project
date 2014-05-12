@@ -8,6 +8,7 @@
 	],
 	"SublimeLinter":
     {
+    	"@python": 3,
         "linters":
         {
             "pep8": {
