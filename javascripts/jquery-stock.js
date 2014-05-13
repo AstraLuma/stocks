@@ -8,7 +8,7 @@ $.fn.stock = function(symbol, name) {
 		name: name
 	});
 
-	var mw = $('<span class="ajax-loading"></span>');
+	var mw = $('<sup class="ajax-loading"></sup>');
 
 	/*$.get("http://insights.themarketiq.com/chart/", {"symbol": symbol}, "html")
 	.done(function(data) {

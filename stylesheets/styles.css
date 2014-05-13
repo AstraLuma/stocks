@@ -324,6 +324,7 @@ a.buttons:hover {
 section.list {
   display: inline-block;
   margin: 0 1em;
+  vertical-align: top;
 }
 
 /* Footer */
