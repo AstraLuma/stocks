@@ -3,6 +3,10 @@ function StockCal(name) {
 	this._items = {};
 }
 StockCal.prototype = {
+	FORMATS: [
+		"DD-MMM-YY",
+		"MMM DD"
+	],
 	add: function(symbol) {
 		this._items[symbol] = false;
 	},
@@ -22,20 +26,22 @@ StockCal.prototype = {
 			var divi = row[2];
 			var exdivi = row[3];
 			if (divi != '-' && divi != 'N/A') {
+				divi = moment(divi, this.FORMATS);
 				events.push({
 					title: name + " (" + symbol + ")",
-					start: moment(divi),
+					start: divi,
 					className: [this._name, "dividend"],
 				});
 			}
 			if (exdivi != '-' && exdivi != 'N/A') {
+				exdivi = moment(exdivi, this.FORMATS);
 				events.push({
 					title: "Ex: " + name + " (" + symbol + ")",
-					start: moment(exdivi),
+					start: exdivi,
 					className: [this._name, "exdividend"],
 				});
 			}
-		});
+		}, this);
 		this._feed(events);
 	},
 	finish: function() {
