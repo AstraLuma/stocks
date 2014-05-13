@@ -19,10 +19,9 @@
 		"256": "images/icon-256.png"
 	},
 	"permissions": [
-		"http://insights.themarketiq.com/",
-		"http://online.wsj.com/",
-		"http://download.finance.yahoo.com/",
-		"https://download.finance.yahoo.com/"
+		"http://insights.themarketiq.com/*",
+		"http://online.wsj.com/*",
+		"http://download.finance.yahoo.com/*"
 	],
 	"offline_enabled": false
 }
