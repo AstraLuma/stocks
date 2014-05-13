@@ -29,7 +29,7 @@ StockCal.prototype = {
 				divi = moment(divi, this.FORMATS);
 				events.push({
 					title: name + " (" + symbol + ")",
-					start: divi,
+					start: divi.toDate(),
 					className: [this._name, "dividend"],
 				});
 			}
@@ -37,7 +37,7 @@ StockCal.prototype = {
 				exdivi = moment(exdivi, this.FORMATS);
 				events.push({
 					title: "Ex: " + name + " (" + symbol + ")",
-					start: exdivi,
+					start: exdivi.toDate(),
 					className: [this._name, "exdividend"],
 				});
 			}
@@ -51,6 +51,10 @@ StockCal.prototype = {
 		this._req = $.get("http://download.finance.yahoo.com/d/quotes.csv", {
 			s: sl,
 			f: 'snr1q0'
+		})
+		.fail(function() {
+			// TODO
+			alert("Failed to load Yahoo! Finance data");
 		});
 		// Register done callback if we've already been called by fullCalendar
 		this._check();
@@ -59,7 +63,7 @@ StockCal.prototype = {
 		this._feed = callback;
 		this._check();
 	},
-	getFeeder: function() {
+	get events() {
 		return this.feeder.bind(this);
 	}
 };
@@ -84,6 +88,7 @@ function loadWSJ() {
 	})
 	.fail(function (){
 		// TODO
+		alert("Failed to load WSJ data")
 	})
 	;
 }
@@ -105,17 +110,25 @@ $(function() {
 	loadWSJ();
 	loadPortfolio();
 	$('#calendar').fullCalendar({
+		theme: true,
+		header: {
+		    left:   'title',
+		    center: 'basicDay,basicWeek,month',
+		    right:  'today prev,next'
+		},
 		eventSources: [
+			calendars.portfolio,
+			calendars.wsj,
 			{
-				events: calendars.portfolio.getFeeder(),
-				color: 'green',
-				textColor: 'black'
-			},
-			{
-				events: calendars.wsj.getFeeder(),
-				color: 'blue',
-				textColor: 'black'
+				events: [
+					{
+						title: "Test",
+						start: '2014-05-13T13:15:30Z',
+						end: '2014-05-14T13:15:30Z',
+						color: 'red'
+					}
+				]
 			}
 		]
-	})
+	});
 });
