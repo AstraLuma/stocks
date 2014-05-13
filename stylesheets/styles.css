@@ -176,7 +176,7 @@ pre {
 
 /* Tables */
 
-table {
+/*table {
   width:100%;
 }
 
@@ -198,13 +198,14 @@ th {
 td {
   padding: 10px;
 	background: #ccc;
- }
+ }*/
 
 
 /* Wrapper */
 .wrapper {
-  width:960px;
+/*  width:960px;
   padding-left: 275px;
+  */
 }
 
 
@@ -321,7 +322,7 @@ a.buttons:hover {
   padding-bottom:50px;
 }*/
 
-section.list {
+section {
   display: inline-block;
   margin: 0 1em;
   vertical-align: top;
