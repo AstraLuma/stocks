@@ -206,6 +206,7 @@ td {
 /* Wrapper */
 .wrapper {
   width:960px;
+  padding-left: 275px;
 }
 
 
@@ -215,8 +216,9 @@ header {
 	background-color: #171717;
 	color: #FDFDFB;
   width:170px;
-  float:left;
-  position:fixed;
+  position: absolute;
+  top: 40px;
+  left: 0;
 	border: 1px solid #000;
 	-webkit-border-top-right-radius: 4px;
 	-webkit-border-bottom-right-radius: 4px;
@@ -315,21 +317,21 @@ a.buttons:hover {
 
 /* Section - for main page content */
 
-section {
+/*section {
   width:650px;
   float:right;
   padding-bottom:50px;
-}
+}*/
 
+section.list {
+  display: inline-block;
+  margin: 0 1em;
+}
 
 /* Footer */
 
 footer {
-  width:170px;
-  float:left;
-  position:fixed;
-  bottom:10px;
-	padding-left: 50px;
+	margin-left: 50px;
 }
 
 @media print, screen and (max-width: 960px) {
