@@ -5,15 +5,18 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Stocks by astronouth7303</title>
 
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.css"></script>
+    <link rel="stylesheet" href="stylesheets/fonts.css" />
+    <link rel="stylesheet" href="stylesheets/jquery-ui.css" />
+    <link rel="stylesheet" href="stylesheets/jquery-csv.css" />
+    <link rel="stylesheet" href="stylesheets/fullcalendar.css">
+    <link rel="stylesheet" src="stylesheets/fullcalendar.print.css">
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/fullcalendar/1.6.4/fullcalendar.print.css"></script>
+    <script src="javascripts/jquery.min.js"></script>
+    <script src="javascripts/jquery-ui.min.js"></script>
+    <script src="javascripts/fullcalendar.min.js"></script>
     <script src="javascripts/scale.fix.js"></script>
+    <script src="javascripts/stocks.js" async defer></script>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
@@ -37,8 +40,7 @@
       </header>
       <section class="list">
         <h1>Today's Weak List</h1>
-        <ol id="weaklist">
-        </ol>
+        <ol id="weaklist"></ol>
       </section>
       <section class="list">
         <h1>Your Watchlist</h1>

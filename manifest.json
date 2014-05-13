@@ -1,0 +1,19 @@
+{
+	"manifest_version": 2,
+	"name": "Stock Calendar",
+	"short_name": "Stocks",
+	"description": "Tracks Stocks",
+	"version": "0.1",
+	"app": {
+		"launch": {
+			"local_path": "index.html"
+		}
+	},
+	"permissions": [
+		"http://www.marketwatch.com/*",
+		"https://secure.marketwatch.com/*",
+		"http://online.wsj.com/*",
+		"http://download.finance.yahoo.com/*"
+	],
+	"offline_enabled": false
+}
