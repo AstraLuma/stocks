@@ -3,17 +3,26 @@
 	"name": "Stock Calendar",
 	"short_name": "Stocks",
 	"description": "Tracks Stocks",
-	"version": "0.1",
+	"version": "0.2",
 	"app": {
 		"launch": {
 			"local_path": "index.html"
 		}
 	},
+	"icons": { 
+		"16": "images/icon-16.png",
+		"24": "images/icon-24.png",
+		"32": "images/icon-32.png",
+		"48": "images/icon-48.png",
+		"64": "images/icon-64.png",
+		"128": "images/icon-128.png",
+		"256": "images/icon-256.png"
+	},
 	"permissions": [
-		"http://insights.themarketiq.com/*",
-		"http://online.wsj.com/*",
-		"http://download.finance.yahoo.com/*",
-		"https://download.finance.yahoo.com/*"
+		"http://insights.themarketiq.com/",
+		"http://online.wsj.com/",
+		"http://download.finance.yahoo.com/",
+		"https://download.finance.yahoo.com/"
 	],
 	"offline_enabled": false
 }
