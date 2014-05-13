@@ -10,8 +10,7 @@
 		}
 	},
 	"permissions": [
-		"http://www.marketwatch.com/*",
-		"https://secure.marketwatch.com/*",
+		"http://insights.themarketiq.com/*",
 		"http://online.wsj.com/*",
 		"http://download.finance.yahoo.com/*"
 	],

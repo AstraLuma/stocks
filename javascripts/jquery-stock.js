@@ -1,4 +1,4 @@
-(function($)
+(function($) {
 
 $.fn.stock = function(symbol, name) {
 	this.empty();
@@ -10,7 +10,7 @@ $.fn.stock = function(symbol, name) {
 
 	var mw = $('<span class="ajax-loading"></span>');
 
-	$.get("http://www.marketwatch.com/investing/stock/"+symbol.toLowerCase(), "html")
+	/*$.get("http://insights.themarketiq.com/chart/", {"symbol": symbol}, "html")
 	.done(function(data) {
 		mw.removeClass("ajax-loading").addClass("ajax-success");
 		var doc = $(data);
@@ -20,7 +20,8 @@ $.fn.stock = function(symbol, name) {
 	.fail(function() {
 		mw.removeClass("ajax-loading").addClass("ajax-fail");
 	})
-	;
+	;*/
+	mw.removeClass('ajax-loading');
 
 	var text;
 	if (name) {
@@ -32,7 +33,7 @@ $.fn.stock = function(symbol, name) {
 	this.append(
 		text,
 		" ",
-		mw,
+		mw
 	);
 
 	return this;
