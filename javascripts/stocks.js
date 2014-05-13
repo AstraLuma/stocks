@@ -1,17 +1,57 @@
-function StockCal() {
+function StockCal(name) {
+	this._name = name;
 	this._items = {};
 }
 StockCal.prototype = {
 	add: function(symbol) {
-		this._items[symbol] = '...';
+		this._items[symbol] = false;
+	},
+	_check: function() {
+		if (this._feed && this._req) {
+			this._req.done(this._process.bind(this));
+		}
+	},
+	_process: function(data) {
+		var events = [];
+		$.csv.toArrays(data).forEach(function(row) {
+			if (row.length != 4) {
+				return;
+			}
+			var symbol = row[0];
+			var name = row[1];
+			var divi = row[2];
+			var exdivi = row[3];
+			if (divi != '-' && divi != 'N/A') {
+				events.push({
+					title: name + " (" + symbol + ")",
+					start: moment(divi),
+					className: [this._name, "dividend"],
+				});
+			}
+			if (exdivi != '-' && exdivi != 'N/A') {
+				events.push({
+					title: "Ex: " + name + " (" + symbol + ")",
+					start: moment(exdivi),
+					className: [this._name, "exdividend"],
+				});
+			}
+		});
+		this._feed(events);
 	},
 	finish: function() {
+		var sl = Object.keys(this._items).join(',');
+		if (!sl) return;
 		// Kick off the AJAX call to Yahoo to get date data
+		this._req = $.get("http://download.finance.yahoo.com/d/quotes.csv", {
+			s: sl,
+			f: 'snr1q0'
+		});
 		// Register done callback if we've already been called by fullCalendar
+		this._check();
 	},
 	feeder: function(start, end, callback) {
-		// If we have an AJAX call, register with it
-		// If not, file callback away to be registered later
+		this._feed = callback;
+		this._check();
 	},
 	getFeeder: function() {
 		return this.feeder.bind(this);
@@ -19,8 +59,8 @@ StockCal.prototype = {
 };
 
 var calendars = {
-	portfolio: new StockCal,
-	wsj: new StockCal
+	portfolio: new StockCal("portfolio"),
+	wsj: new StockCal("wsj")
 };
 
 function loadWSJ() {
@@ -31,8 +71,10 @@ function loadWSJ() {
 			var matches;
 			if (matches = /(.*) \((.*)\)/.exec(row[0])) {
 				parent.append($('<li>').stock(matches[2], matches[1]));
+				calendars.wsj.add(matches[2]);
 			}
 		});
+		calendars.wsj.finish();
 	})
 	.fail(function (){
 		// TODO
@@ -47,8 +89,10 @@ function loadPortfolio() {
 		var parent = $('#portfolio');
 		syms.forEach(function(e) {
 			parent.append($('<li>').stock(e));
+			calendars.portfolio.add(e);
 		});
 	}
+	calendars.portfolio.finish();
 }
 
 $(function() {
