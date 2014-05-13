@@ -28,7 +28,8 @@ StockCal.prototype = {
 			if (divi != '-' && divi != 'N/A') {
 				divi = moment(divi, this.FORMATS);
 				events.push({
-					title: name + " (" + symbol + ")",
+					title: symbol,
+					full_name: name,
 					start: divi.toDate(),
 					className: [this._name, "dividend"],
 				});
@@ -36,7 +37,8 @@ StockCal.prototype = {
 			if (exdivi != '-' && exdivi != 'N/A') {
 				exdivi = moment(exdivi, this.FORMATS);
 				events.push({
-					title: "Ex: " + name + " (" + symbol + ")",
+					title: "Ex: " + symbol,
+					full_name: name,
 					start: exdivi.toDate(),
 					className: [this._name, "exdividend"],
 				});
@@ -46,18 +48,23 @@ StockCal.prototype = {
 	},
 	finish: function() {
 		var sl = Object.keys(this._items).join(',');
-		if (!sl) return;
-		// Kick off the AJAX call to Yahoo to get date data
-		this._req = $.get("http://download.finance.yahoo.com/d/quotes.csv", {
-			s: sl,
-			f: 'snr1q0'
-		})
-		.fail(function() {
-			// TODO
-			alert("Failed to load Yahoo! Finance data");
-		});
-		// Register done callback if we've already been called by fullCalendar
-		this._check();
+		if (!sl) {
+			this._req = $.Deferred();
+			this._req.resolve("");
+			this._check();
+		} else {
+			// Kick off the AJAX call to Yahoo to get date data
+			this._req = $.get("http://download.finance.yahoo.com/d/quotes.csv", {
+				s: sl,
+				f: 'snr1q0'
+			})
+			.fail(function() {
+				// TODO
+				alert("Failed to load Yahoo! Finance data");
+			});
+			// Register done callback if we've already been called by fullCalendar
+			this._check();
+		}
 	},
 	feeder: function(start, end, callback) {
 		this._feed = callback;
@@ -116,19 +123,13 @@ $(function() {
 		    center: 'basicDay,basicWeek,month',
 		    right:  'today prev,next'
 		},
+		weekends: false,
 		eventSources: [
-			calendars.portfolio,
 			calendars.wsj,
-			{
-				events: [
-					{
-						title: "Test",
-						start: '2014-05-13T13:15:30Z',
-						end: '2014-05-14T13:15:30Z',
-						color: 'red'
-					}
-				]
-			}
-		]
+			calendars.portfolio
+		],
+		eventRender: function(event, element) {
+	        element.attr('title', event.full_name);
+	    }
 	});
 });
