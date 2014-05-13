@@ -7,8 +7,12 @@ $.fn.stock = function(symbol, name) {
 		symbol: symbol,
 		name: name
 	});
-
-	var mw = $('<sup class="ajax-loading"></sup>');
+	const url = "http://insights.themarketiq.com/chart/?symbol=" + symbol; // FIXME: URL encode symbol
+	var mw = $('<sup></sup>')/*
+		.attr('title', '')
+		.tooltip({
+			content: $('<object>').attr('data', url).html()
+		})*/;
 
 	/*
 	// The page fills this in by JS, probably to prevent this exact thing.
