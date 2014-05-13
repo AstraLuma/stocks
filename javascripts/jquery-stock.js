@@ -10,7 +10,10 @@ $.fn.stock = function(symbol, name) {
 
 	var mw = $('<sup class="ajax-loading"></sup>');
 
-	/*$.get("http://insights.themarketiq.com/chart/", {"symbol": symbol}, "html")
+	/*
+	// The page fills this in by JS, probably to prevent this exact thing.
+	// Maybe do it by bubbled iframe or something?
+	$.get("http://insights.themarketiq.com/chart/", {"symbol": symbol}, "html")
 	.done(function(data) {
 		mw.removeClass("ajax-loading").addClass("ajax-success");
 		var doc = $(data);
