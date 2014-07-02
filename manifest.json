@@ -4,10 +4,12 @@
 	"short_name": "Stocks",
 	"description": "Tracks Stocks",
 	"version": "0.2",
-	"app": {
-		"launch": {
-			"local_path": "index.html"
-		}
+	"browser_action": {
+		"default_icon": {
+			"19": "images/icon-16.png",
+			"38": "images/icon-32.png"
+		},
+		"default_title": "Stocks Calendar"
 	},
 	"icons": { 
 		"16": "images/icon-16.png",
@@ -23,5 +25,9 @@
 		"http://online.wsj.com/*",
 		"http://download.finance.yahoo.com/*"
 	],
+	"background": {
+		"scripts": ["javascripts/event-page.js"],
+		"persistent": false
+	},
 	"offline_enabled": false
 }
