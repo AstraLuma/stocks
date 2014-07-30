@@ -87,74 +87,40 @@ function getPortfolio() {
 function StockCal(name) {
 	this._name = name;
 	this._items = {};
+	this._feedee = new Promise();
+	this._data = new Promise();
+
+	Promise.all([this._feedee, this._data]).then(function(bits) {
+		var events = [],
+			feedee = bits[0],
+			data = bits[1];
+		for (var s in data) {
+			var rec = data[s];
+			if (rec.dividend) {
+				events.push({
+					title: rec.symbol,
+					full_name: rec.name,
+					start: rec.dividend.toDate(),
+					className: [this._name, "dividend", "count-"+rec.count],
+				});
+			}
+			if (rec.exdividend) {
+				events.push({
+					title: rec.symbol,
+					full_name: rec.name,
+					start: rec.exdividend.toDate(),
+					className: [this._name, "exdividend", "count-"+rec.count],
+				});
+			}
+		}
+	});
 }
 StockCal.prototype = {
-	FORMATS: [
-		"DD-MMM-YY",
-		"MMM DD"
-	],
-	add: function(symbol) {
-		this._items[symbol] = false;
-	},
-	_check: function() {
-		if (this._feed && this._req) {
-			this._req.done(this._process.bind(this));
-		}
-	},
-	_process: function(data) {
-		var events = [];
-		$.csv.toArrays(data).forEach(function(row) {
-			if (row.length != 4) {
-				return;
-			}
-			var symbol = row[0];
-			var name = row[1];
-			var divi = row[2];
-			var exdivi = row[3];
-			if (divi != '-' && divi != 'N/A') {
-				divi = moment(divi, this.FORMATS);
-				events.push({
-					title: symbol,
-					full_name: name,
-					start: divi.toDate(),
-					className: [this._name, "dividend"],
-				});
-			}
-			if (exdivi != '-' && exdivi != 'N/A') {
-				exdivi = moment(exdivi, this.FORMATS);
-				events.push({
-					title: "Ex: " + symbol,
-					full_name: name,
-					start: exdivi.toDate(),
-					className: [this._name, "exdividend"],
-				});
-			}
-		}, this);
-		this._feed(events);
-	},
-	finish: function() {
-		var sl = Object.keys(this._items).join(',');
-		if (!sl) {
-			this._req = $.Deferred();
-			this._req.resolve("");
-			this._check();
-		} else {
-			// Kick off the AJAX call to Yahoo to get date data
-			this._req = $.get("http://download.finance.yahoo.com/d/quotes.csv", {
-				s: sl,
-				f: 'snr1q0'
-			})
-			.fail(function() {
-				// TODO
-				alert("Failed to load Yahoo! Finance data");
-			});
-			// Register done callback if we've already been called by fullCalendar
-			this._check();
-		}
-	},
+	resolve: function(data) {
+		this._data.resolve(data);
+	}
 	feeder: function(start, end, callback) {
-		this._feed = callback;
-		this._check();
+		this._feedee.resolve(callback);
 	},
 	get events() {
 		return this.feeder.bind(this);
@@ -176,10 +142,16 @@ $(function() {
 	strength.then(function(data) {
 		displayList('#stronglist', data);
 	});
-	Promise.all([weakness, strength]).then(mergeData).then(getDates).then(/*Add to calendar*/);
+	Promise.all([weakness, strength]).then(mergeData).then(getDates).then(function(data) {
+		calendasr.wsj.resolve(data);
+	});
 
 	// Make the Portfolio data flow
-	getPortfolio().then(getDates).then(/*Add to Calendar*/);
+	getPortfolio().then(getDates).then(function(data) {
+		calendars.portfolio.resolve(data);
+	});
+
+	// Make the calendar
 	$('#calendar').fullCalendar({
 		theme: true,
 		header: {
