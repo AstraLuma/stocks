@@ -56,7 +56,7 @@ function mergeData(datas) {
 function getDates(data) {
 	console.called("getDates", data);
 	return ProJax.get("http://download.finance.yahoo.com/d/quotes.csv", {
-		s: Object.keys(data),
+		s: Object.keys(data).join(','),
 		f: 'snr1q0'
 	}).then(function(dates) {
 		console.called("getDates.<resolve>", dates)
@@ -98,6 +98,31 @@ function getPortfolio() {
 	return Promise.resolve(JSON.parse(localStorage['$portfolio']));
 }
 
+function makeEvents(name, data) {
+	var events = [];
+	console.called("makeEvents", data);
+	for (var s in data) {
+		var rec = data[s];
+		if (rec.dividend) {
+			events.push({
+				title: rec.symbol,
+				full_name: rec.name,
+				start: rec.dividend.toDate(),
+				className: [name, "dividend", "count-"+rec.count],
+			});
+		}
+		/*if (rec.exdividend) {
+			events.push({
+				title: rec.symbol,
+				full_name: rec.name,
+				start: rec.exdividend.toDate(),
+				className: [name, "exdividend", "count-"+rec.count],
+			});
+		}*/
+	}
+	return Promise.resolve(events);
+}
+
 
 function StockCal(name) {
 	this._name = name;
@@ -110,30 +135,10 @@ function StockCal(name) {
 		}.bind(this));
 
 	Promise.all([f, d]).then(function(bits) {
-		var events = [],
-			feedee = bits[0],
+		var feedee = bits[0],
 			data = bits[1];
-		console.called("StockCal.<resolve>", feedee, data);
-		for (var s in data) {
-			var rec = data[s];
-			if (rec.dividend) {
-				events.push({
-					title: rec.symbol,
-					full_name: rec.name,
-					start: rec.dividend.toDate(),
-					className: [this._name, "dividend", "count-"+rec.count],
-				});
-			}
-			if (rec.exdividend) {
-				events.push({
-					title: rec.symbol,
-					full_name: rec.name,
-					start: rec.exdividend.toDate(),
-					className: [this._name, "exdividend", "count-"+rec.count],
-				});
-			}
-		}
-	});
+		makeEvents(this._name, data).then(feedee);
+	}.bind(this));
 }
 StockCal.prototype = {
 	resolve: function(data) {
@@ -164,18 +169,22 @@ $(function() {
 	strength.then(function(data) {
 		displayList('#stronglist', data);
 	});
-	Promise.all([weakness, strength]).then(mergeData).then(getDates).then(function(data) {
+	var cal_wsj = Promise.all([weakness, strength]).then(mergeData).then(getDates).then(function(data) {
 		calendars.wsj.resolve(data);
 	});
 
 	// Make the Portfolio data flow
-	/*var portfolio = getPortfolio().then(getDates)
+	var portfolio = getPortfolio().then(getDates)
 	portfolio.then(function(data) {
 		displayList('#portfolio', data);
 	});
-	portfolio.then(function(data) {
+	var cal_port = portfolio.then(function(data) {
 		calendars.portfolio.resolve(data);
-	});*/
+	});
+
+	Promise.all([cal_wsj, cal_port]).then(function() {
+		console.debug("All data loaded!");
+	})
 
 	// Make the calendar
 	$('#calendar').fullCalendar({
