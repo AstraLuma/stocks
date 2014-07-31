@@ -3,7 +3,7 @@
 	"name": "Stock Calendar",
 	"short_name": "Stocks",
 	"description": "Tracks Stocks",
-	"version": "0.4",
+	"version": "0.5",
 	"browser_action": {
 		"default_icon": {
 			"19": "images/icon-16.png",
