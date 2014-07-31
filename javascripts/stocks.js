@@ -106,7 +106,7 @@ function makeEvents(name, data) {
 		if (rec.dividend) {
 			events.push({
 				title: rec.symbol,
-				full_name: rec.name,
+				full_name: rec.name+" ("+rec.count+")",
 				start: rec.dividend.toDate(),
 				className: [name, "dividend", "count-"+rec.count],
 			});

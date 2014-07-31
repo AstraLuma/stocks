@@ -341,6 +341,14 @@ section {
   border: thin solid green;
 }
 
+.fc-event.count-1 {
+  background: #9CC3D6;
+}
+
+.fc-event.count-2 {
+  background: #3a87ad;
+}
+
 /* Footer */
 
 footer {
