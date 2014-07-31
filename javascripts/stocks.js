@@ -127,17 +127,12 @@ function makeEvents(name, data) {
 function StockCal(name) {
 	this._name = name;
 	this._items = {};
-	var f = new Promise(function(resolve) {
-			this._feedee = resolve;
-		}.bind(this)),
-		d = new Promise(function(resolve) {
+	var d = new Promise(function(resolve) {
 			this._data = resolve;
 		}.bind(this));
 
-	Promise.all([f, d]).then(function(bits) {
-		var feedee = bits[0],
-			data = bits[1];
-		makeEvents(this._name, data).then(feedee);
+	this._events = d.then(function(data) {
+		return makeEvents(this._name, data);
 	}.bind(this));
 }
 StockCal.prototype = {
@@ -147,7 +142,7 @@ StockCal.prototype = {
 	},
 	feeder: function(start, end, callback) {
 		console.called("StockCal.feeder", start, end, callback);
-		this._feedee(callback);
+		this._events.then(callback);
 	},
 	get events() {
 		return this.feeder.bind(this);
