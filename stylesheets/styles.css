@@ -329,8 +329,13 @@ section {
 }
 
 #weaklist, #stronglist {
-  max-height: 20em;
   overflow: scroll;
+}
+
+@media (max-width: 1200px) {
+  #weaklist, #stronglist {
+    max-height: 20em;
+  }
 }
 
 .fc-event.exdividend {
