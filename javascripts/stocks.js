@@ -1,5 +1,14 @@
+console.called = function(func) {
+	console.groupCollapsed(func);
+	Array.prototype.slice.call(arguments, 1).forEach(function(arg) {
+		console.dir(arg);
+	});
+	console.groupEnd();
+};
+
 var ProJax = {
 	get: function(url, args) {
+		console.called("ProJax.get", url, args);
 		return new Promise(function(resolve, reject) {
 			$.get(url, args).done(resolve).fail(reject);
 		});
@@ -7,6 +16,7 @@ var ProJax = {
 };
 
 function parseWSJ(data) {
+	console.called("parseWSJ", data);
 	var rv = {};
 	$.csv.toArrays(data, {separator: '\t'}).forEach(function(row) {
 		var matches;
@@ -18,6 +28,7 @@ function parseWSJ(data) {
 }
 
 function displayList(sel, data) {
+	console.called("displayList", sel, data);
 	var parent = $(sel);
 	for(var sym in data) {
 		var rec = data[sym];
@@ -26,6 +37,7 @@ function displayList(sel, data) {
 }
 
 function mergeData(datas) {
+	console.called("mergeData", datas);
 	var rv = {};
 	datas.forEach(function(data) {
 		for (var sym in data) {
@@ -42,42 +54,45 @@ function mergeData(datas) {
 }
 
 function getDates(data) {
-	return new Promise(function(resolve, reject) {
-		ProJax.get("http://download.finance.yahoo.com/d/quotes.csv", {
-			s: Object.keys(data),
-			f: 'snr1q0'
-		})
-		.catch(reject)
-		.then(function() {
-			var FORMATS = [
-				"DD-MMM-YY",
-				"MMM DD"
-			];
+	console.called("getDates", data);
+	return ProJax.get("http://download.finance.yahoo.com/d/quotes.csv", {
+		s: Object.keys(data),
+		f: 'snr1q0'
+	}).then(function(dates) {
+		console.called("getDates.<resolve>", dates)
+		var FORMATS = [
+			"DD-MMM-YY",
+			"MMM DD"
+		];
 
-			$.csv.toArrays(data).forEach(function(row) {
-				if (row.length != 4) {
-					return;
-				}
-				var symbol = row[0];
-				var name = row[1];
-				var divi = row[2];
-				var exdivi = row[3];
-				if (!data[symbol].name) {
-					data[symbol].name = name;
-				}
-				if (divi != '-' && divi != 'N/A') {
-					data[symbol].dividend = moment(divi, FORMATS);
-				}
-				if (exdivi != '-' && exdivi != 'N/A') {
-					data[symbol].exdividend = moment(exdivi, FORMATS);
-				}
-			});
-			resolve(data);
+		$.csv.toArrays(dates).forEach(function(row, index) {
+			if (row.length != 4) {
+				console.debug("Not a row?");
+				return;
+			}
+			var symbol = row[0].replace(/[-]/, '');
+			var name = row[1];
+			var divi = row[2];
+			var exdivi = row[3];
+			var rec = data[symbol];
+			if (rec == undefined) {
+				console.log("This shouldn't be here", row);
+				return;
+			}
+			rec.name = name;
+			if (divi != '-' && divi != 'N/A') {
+				rec.dividend = moment(divi, FORMATS);
+			}
+			if (exdivi != '-' && exdivi != 'N/A') {
+				rec.exdividend = moment(exdivi, FORMATS);
+			}
 		});
+		return Promise.resolve(data);
 	});
 }
 
 function getPortfolio() {
+	console.called("getPortfolio");
 	if (!localStorage['$portfolio']) 
 		localStorage['$portfolio'] = "[]";
 	return Promise.resolve(JSON.parse(localStorage['$portfolio']));
@@ -87,13 +102,18 @@ function getPortfolio() {
 function StockCal(name) {
 	this._name = name;
 	this._items = {};
-	this._feedee = new Promise();
-	this._data = new Promise();
+	var f = new Promise(function(resolve) {
+			this._feedee = resolve;
+		}.bind(this)),
+		d = new Promise(function(resolve) {
+			this._data = resolve;
+		}.bind(this));
 
-	Promise.all([this._feedee, this._data]).then(function(bits) {
+	Promise.all([f, d]).then(function(bits) {
 		var events = [],
 			feedee = bits[0],
 			data = bits[1];
+		console.called("StockCal.<resolve>", feedee, data);
 		for (var s in data) {
 			var rec = data[s];
 			if (rec.dividend) {
@@ -117,10 +137,12 @@ function StockCal(name) {
 }
 StockCal.prototype = {
 	resolve: function(data) {
-		this._data.resolve(data);
-	}
+		console.called("StockCal.resolve", data);
+		this._data(data);
+	},
 	feeder: function(start, end, callback) {
-		this._feedee.resolve(callback);
+		console.called("StockCal.feeder", start, end, callback);
+		this._feedee(callback);
 	},
 	get events() {
 		return this.feeder.bind(this);
@@ -135,7 +157,7 @@ var calendars = {
 $(function() {
 	// Make the WSJ data flow
 	var weakness = ProJax.get("http://online.wsj.com/mdc/public/npage/2_3045-mfgppl-mfxml2csv.html").then(parseWSJ),
-		strength = ProJax.get("").then(parseWSJ);
+		strength = ProJax.get("http://online.wsj.com/mdc/public/npage/2_3045-mflppg-mfxml2csv.html").then(parseWSJ);
 	weakness.then(function(data) {
 		displayList('#weaklist', data);
 	});
@@ -143,13 +165,17 @@ $(function() {
 		displayList('#stronglist', data);
 	});
 	Promise.all([weakness, strength]).then(mergeData).then(getDates).then(function(data) {
-		calendasr.wsj.resolve(data);
+		calendars.wsj.resolve(data);
 	});
 
 	// Make the Portfolio data flow
-	getPortfolio().then(getDates).then(function(data) {
-		calendars.portfolio.resolve(data);
+	/*var portfolio = getPortfolio().then(getDates)
+	portfolio.then(function(data) {
+		displayList('#portfolio', data);
 	});
+	portfolio.then(function(data) {
+		calendars.portfolio.resolve(data);
+	});*/
 
 	// Make the calendar
 	$('#calendar').fullCalendar({

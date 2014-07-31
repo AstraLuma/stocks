@@ -328,7 +328,7 @@ section {
   vertical-align: top;
 }
 
-#weaklist {
+#weaklist, #stronglist {
   max-height: 20em;
   overflow: scroll;
 }
